@@ -185,7 +185,7 @@ Worker.prototype.next = function () {
 Worker.prototype.start = function () {
   var self = this;
 
-  this.client = redis.createClient(this.host, this.port);
+  this.client = redis.createClient(this.port, this.host);
 
   if (this.auth) {
     this.client.auth(this.auth);
@@ -198,7 +198,7 @@ Worker.prototype.start = function () {
   if (this.continual) {
     if (!this._child_client) {
       // Client for use with child jobs.
-      this._child_client = redis.createClient(this.host, this.port);
+      this._child_client = redis.createClient(this.port, this.host);
 
       if (this.auth) {
         this._child_client.auth(this.auth);
