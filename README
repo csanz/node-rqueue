@@ -1,0 +1,54 @@
+Description
+-----------
+
+Node-redis-queue is a simple Redis based message queue for communicating between multiple platforms.
+It uses a easy to implement message paradigm within Redis lists.
+
+An example message:
+
+    {
+      id: 1,
+      payload: 'Some data',
+      errors: ['HTTP 404'],
+      error_count: 1
+    }
+
+Messages are put onto the list with `rpush`, then the client listens for messages with the `blpop` command.
+
+Usage
+-----
+
+queue-server.js:
+
+// Require the node-redis-queue
+var client = require('./node-redis-queue');
+
+// Create the Queue with a redis server listening on localhost:6379
+var user_queue = new client.Queue('user', 'localhost', 6379);
+
+// Add a job to the queue.
+user_queue.push('Any JSON.strinify-able data goes in this parameter', function (error, id) {
+  // Handle errors
+  if (error) throw error;
+  // Second parameter is the message/job id.
+});
+
+queue-worker.js:
+
+// Require the node-redis-queue
+var client = require('./node-redis-queue');
+
+// Create a worker.
+var worker = client.createWorker('localhost', 6379);
+
+// Setup events for each queue you want to listen to.
+worker.on('user', function (job) {
+  // Process message
+  process(job.payload);
+});
+
+// Listen for all messages on worker.
+worker.on('*', fn);
+
+// Start listening.
+worker.listen('user');
