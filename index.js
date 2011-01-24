@@ -37,9 +37,15 @@ var removePrefix = function (prefix, string) {
  * @param {Number} port The port number for the Redis client.
  */
 var Queue = function (name, host, port) {
+  var self = this;
+
   this.name   = name;
   this.client = redis.createClient(host, port);
   this.prefix = 'queue:';
+
+  this.client.on('error', function (error) {
+    self.emit('error', error);
+  });
 };
 
 /**
@@ -107,6 +113,9 @@ var Worker = function (name, host, port) {
 
   // Client for use with child jobs.
   this.child_client = redis.createClient(host, port);
+  this.child_client.on('error', function (error) {
+    self.emit('error', error);
+  });
 
   /*
    * Callback for blpop responses.
@@ -160,7 +169,12 @@ Worker.prototype.next = function () {
  * Start the worker
  */
 Worker.prototype.start = function () {
+  var self = this;
+
   this.client = redis.createClient(this.host, this.port);
+  this.client.on('error', function (error) {
+    self.emit('error', error);
+  });
   this.next();
 };
 
