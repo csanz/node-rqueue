@@ -72,7 +72,7 @@ module.exports = {
     q.client.del('id:worker.test');
     q.client.quit();
 
-    w.child_client.quit();
+    w._child_client.quit();
     w.stop();
   }
 }
