@@ -84,13 +84,16 @@ Queue.prototype.push = function (payload, callback) {
  * Inherits from EventEmitter.
  * @constructor
  */
-var Worker = function (host, port) {
+var Worker = function (name, host, port) {
   var self = this;
 
-  this.host   = host;
-  this.port   = port;
-  this.prefix = 'queue:';
-  this.queues = {};
+  this.host      = host;
+  this.port      = port;
+  this.prefix    = 'queue:';
+  this.name      = name;
+  this.queues    = {};
+  // TODO: Rename?
+  this.continual = false;
 
   // Client for use with child jobs.
   this.child_client = redis.createClient(host, port);
@@ -106,12 +109,15 @@ var Worker = function (host, port) {
       return self.emit('error', error);
     }
 
-    var key  = removePrefix(self.prefix, data[0].toString()),
-        data = JSON.parse(Buffer.isBuffer(data[1]) ? data[1].toString() : data),
-        job  = new Job(self, data, key);
+    var data = JSON.parse(Buffer.isBuffer(data[1]) ? data[1].toString() : data),
+        job  = new Job(self, data);
 
-    self.emit(key, job);
-    self.emit('*', job);
+    self.emit('message', job);
+
+    if (!self.client.quitting && self.continual) {
+      // Listen for more jobs.
+      self.client.blpop(self.prefix + self.name, 0, self._onPop);
+    }
   };
 };
 
@@ -131,57 +137,26 @@ exports.createWorker = function (host, port) {
 
 exports.Worker = Worker;
 
-/*
- * Recycle the client.
- * @private
- */
-Worker.prototype._recycle = function () {
-  if (this.client) {
-    this.client.destroy();
-  }
-
-  var keys = Object.keys(this.queues);
-
-  if (0 < keys.length) {
-    var key_string = '';
-    for (var i = 0, il = keys.length; i < il; i++) {
-      key_string += this.prefix + keys[i] + ' ';
-    }
-    key_string = key_string.slice(0, -1);
-
-    this.client = redis.createClient(this.host, this.port);
-    this.client.blpop(key_string, 0, this._onPop); 
-  }
-
-  // TODO: Recovery when disconnected. Is it needed? (node-redis might re-send the command for us)
-}
-
 /**
- * Tell the worker what queue(s) to listen on.
- * We have to create a new redis client for each queue, as we use
- * blpop.
+ * Listen for the next job. Only has to be called by user if `continual` is false.
  */
-Worker.prototype.listen = function () {
-  for (var i = 0, il = arguments.length; i < il; i++) {
-    this.queues[arguments[i]] = null;
-  }
-
-  this._recycle();
+Worker.prototype.next = function () {
+  this.client.blpop(this.prefix + this.name, 0, this._onPop); 
 };
 
-/*
- * Un-listen to the specified queues
+/**
+ * Start the worker
  */
-Worker.prototype.unlisten = function () {
-  var name;
+Worker.prototype.start = function () {
+  this.client = redis.createClient(this.host, this.port);
+  this.next();
+};
 
-  for (var i = 0, il = arguments.length; i < il; i++) {
-    name = arguments[i];
-    delete this.queues[name];
-    this.removeAllListeners(name);
-  }
-
-  this._recycle();
+/**
+ * Stop the worker
+ */
+Worker.prototype.stop = function () {
+  this.client.destroy();
 };
 
 

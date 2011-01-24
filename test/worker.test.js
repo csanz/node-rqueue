@@ -2,8 +2,10 @@ var client = require('../'),
     assert = require('assert');
 
 var q = client.createQueue('worker.test'),
-    w = client.createWorker(),
+    w = client.createWorker('worker.test'),
     job;
+
+w.continual = true;
 
 job = new client.Job(w, {
   payload:     'testing',
@@ -19,7 +21,7 @@ q.push({
 
 module.exports = {
   "test Worker events": function (done) {
-    w.on('worker.test', function (job) {
+    w.once('message', function (job) {
       assert.ok(job);
       assert.equal(typeof job.reportError, 'function');
       assert.equal(typeof job.retry, 'function');
@@ -33,11 +35,11 @@ module.exports = {
       done();
     });
 
-    w.listen('worker.test');
+    w.start();
   },
-  "test Worker#unlisten": function () {
-    w.unlisten('worker.test');
-    assert.equal(w.listeners('worker.test').length, 0);
+  "test Worker#stop": function () {
+    w.stop();
+    assert.ok(w.client.quitting);
   },
   "test Job#reportError": function () {
     job.reportError(new Error('Bacon was not tasty enough.'));
@@ -46,7 +48,7 @@ module.exports = {
     assert.equal(job.error_count, 1);
   },
   "test Job#retry": function (done) {
-    w.on('worker.test', function (job) {
+    w.on('message', function (job) {
       assert.ok(job);
 
       assert.equal(job.id, 2);
@@ -58,7 +60,7 @@ module.exports = {
       done();
     });
 
-    w.listen('worker.test');
+    w.start();
 
     job.retry(function (error, id) {
       assert.ok(!error);
@@ -71,6 +73,6 @@ module.exports = {
     q.client.quit();
 
     w.child_client.quit();
-    w.client.destroy();
+    w.stop();
   }
 }

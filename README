@@ -38,17 +38,17 @@ queue-worker.js:
 // Require the node-redis-queue
 var client = require('./node-redis-queue');
 
-// Create a worker.
-var worker = client.createWorker('localhost', 6379);
+// Create a worker for each queue.
+var worker = client.createWorker('user', 'localhost', 6379);
 
-// Setup events for each queue you want to listen to.
-worker.on('user', function (job) {
+// Setup message event
+worker.on('message', function (job) {
   // Process message
   process(job.payload);
+
+  // Listen for next job
+  worker.next();
 });
 
-// Listen for all messages on worker.
-worker.on('*', fn);
-
 // Start listening.
-worker.listen('user');
+worker.start();
