@@ -138,7 +138,6 @@ exports.Worker = Worker;
 Worker.prototype._recycle = function () {
   if (this.client) {
     this.client.destroy();
-    console.log(this.client.connected);
   }
 
   var keys = Object.keys(this.queues);
@@ -217,6 +216,7 @@ Job.prototype.reportError = function (error) {
 
 /**
  * Re-process the job by adding back to the queue.
+ * @param {Function} callback The optional callback
  */
 Job.prototype.retry = function (callback) {
   var self = this;
