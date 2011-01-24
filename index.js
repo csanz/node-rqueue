@@ -8,8 +8,8 @@ var redis  = require('./deps/node-redis'),
 /**
  * Handle an error appropiatly.
  *
- * @param {Error} error The error object in question.
- * @param {Function} callback Optional callback to pass error to.
+ * @param {Error} error: The error object in question.
+ * @param {Function} callback: Optional callback to pass error to.
  */
 var handleError = function (error, callback) {
   if (callback) callback(error);
@@ -21,9 +21,9 @@ var handleError = function (error, callback) {
 /**
  * Remove a prefix from a string.
  *
- * @param {String} prefix The prefix.
- * @param {String} string The string.
- * @returns {string} The un-prefixed string.
+ * @param {String} prefix: The prefix.
+ * @param {String} string: The string.
+ * @returns {String} The un-prefixed string.
  */
 var removePrefix = function (prefix, string) {
   return string.slice(prefix.length);
@@ -33,9 +33,9 @@ var removePrefix = function (prefix, string) {
  * The Queue prototype used by the server to add jobs to a queue.
  *
  * @constructor
- * @param {String} name The queue name.
- * @param {String} host The host name for the Redis client.
- * @param {Number} port The port number for the Redis client.
+ * @param {String} name: The queue name.
+ * @param {String} host: The host name for the Redis client.
+ * @param {Number} port: The port number for the Redis client.
  */
 var Queue = function (name, host, port) {
   var self = this;
@@ -55,9 +55,9 @@ util.inherits(Queue, events.EventEmitter);
 /**
  * Creates a new Queue object.
  *
- * @param {String} name The queue name.
- * @param {String} host The host name for the Redis client.
- * @param {Number} port The port number for the Redis client.
+ * @param {String} name: The queue name.
+ * @param {String} host: The host name for the Redis client.
+ * @param {Number} port: The port number for the Redis client.
  * @returns {Queue}
  */
 exports.createQueue = function (name, host, port) {
@@ -69,7 +69,8 @@ exports.Queue = Queue;
 /**
  * Adds a new job to the queue.
  *
- * @param The data payload to enqueue.
+ * @param {Object} payload: The data payload to enqueue.
+ * @param {Function} callback: The data payload to enqueue.
  */
 Queue.prototype.push = function (payload, callback) {
   var self = this;
@@ -103,9 +104,9 @@ Queue.prototype.push = function (payload, callback) {
  * Inherits from EventEmitter.
  *
  * @constructor
- * @param {String} name The queue name.
- * @param {String} host The host name for the Redis client.
- * @param {Number} port The port number for the Redis client.
+ * @param {String} name: The queue name.
+ * @param {String} host: The host name for the Redis client.
+ * @param {Number} port: The port number for the Redis client.
  */
 var Worker = function (name, host, port) {
   var self = this;
@@ -121,12 +122,12 @@ var Worker = function (name, host, port) {
   // TODO: Rename?
   this.continual = false;
 
-  /*
+  /**
    * Callback for blpop responses.
    *
    * @private
-   * @param {Error} error Possible error from Redis
-   * @param data The data from redis.
+   * @param {Error} error: Possible error from Redis
+   * @param {Object} data: The data from redis.
    */
   this._onPop = function (error, data) {
     if (error) {
@@ -151,9 +152,9 @@ util.inherits(Worker, events.EventEmitter);
 /**
  * Creates a new Worker object.
  *
- * @param {String} name The queue name.
- * @param {String} host The host name for the Redis client.
- * @param {Number} port The port number for the Redis client.
+ * @param {String} name: The queue name.
+ * @param {String} host: The host name for the Redis client.
+ * @param {Number} port: The port number for the Redis client.
  * @returns {Worker}
  */
 exports.createWorker = function (name, host, port) {
@@ -207,8 +208,8 @@ Worker.prototype.stop = function () {
  * Job prototype used by the workers.
  *
  * @constructor
- * @param {Worker} worker Parent prototype
- * @param payload The data to set as the payload.
+ * @param {Worker} worker: Parent prototype
+ * @param {Object} payload: The data to set as the payload.
  */
 var Job = function (worker, data) {
   this.payload     = data.payload;
@@ -228,7 +229,7 @@ exports.Job = Job;
 /**
  * Add an error the the job.
  *
- * @param {Error} error The error object to add.
+ * @param {Error} error: The error object to add.
  */
 Job.prototype.reportError = function (error) {
   ++this.error_count;
@@ -238,7 +239,7 @@ Job.prototype.reportError = function (error) {
 /**
  * Re-process the job by adding back to the queue.
  *
- * @param {Function} callback The optional callback
+ * @param {Function} callback: The optional callback
  */
 Job.prototype.retry = function (callback) {
   var self = this;
