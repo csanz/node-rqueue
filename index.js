@@ -34,15 +34,15 @@ var removePrefix = function (prefix, string) {
  *
  * @constructor
  * @param {String} name: The queue name.
- * @param {String} host: The host name for the Redis client.
  * @param {Number} port: The port number for the Redis client.
+ * @param {String} host: The host name for the Redis client.
  * @param {String} auth: If the redis host requires an AUTH command.
  */
-var Queue = function (name, host, port, auth) {
+var Queue = function (name, port, host, auth) {
   var self = this;
 
   this.name   = name;
-  this.client = redis.createClient(host, port);
+  this.client = redis.createClient(port, host);
   this.prefix = 'queue:';
 
   if (auth) {
@@ -61,13 +61,13 @@ util.inherits(Queue, events.EventEmitter);
  * Creates a new Queue object.
  *
  * @param {String} name: The queue name.
- * @param {String} host: The host name for the Redis client.
  * @param {Number} port: The port number for the Redis client.
+ * @param {String} host: The host name for the Redis client.
  * @param {String} auth: If the redis host requires an AUTH command.
  * @returns {Queue}
  */
-exports.createQueue = function (name, host, port, auth) {
-  return new Queue(name, host, port, auth);
+exports.createQueue = function (name, port, host, auth) {
+  return new Queue(name, port, host, auth);
 };
 
 exports.Queue = Queue;
@@ -111,11 +111,11 @@ Queue.prototype.push = function (payload, callback) {
  *
  * @constructor
  * @param {String} name: The queue name.
- * @param {String} host: The host name for the Redis client.
  * @param {Number} port: The port number for the Redis client.
+ * @param {String} host: The host name for the Redis client.
  * @param {String} auth: If the redis host requires an AUTH command.
  */
-var Worker = function (name, host, port, auth) {
+var Worker = function (name, port, host, auth) {
   var self = this;
 
   // Call parent
@@ -161,13 +161,13 @@ util.inherits(Worker, events.EventEmitter);
  * Creates a new Worker object.
  *
  * @param {String} name: The queue name.
- * @param {String} host: The host name for the Redis client.
  * @param {Number} port: The port number for the Redis client.
+ * @param {String} host: The host name for the Redis client.
  * @param {String} auth: If the redis host requires an AUTH command.
  * @returns {Worker}
  */
-exports.createWorker = function (name, host, port, auth) {
-  return new Worker(name, host, port, auth);
+exports.createWorker = function (name, port, host, auth) {
+  return new Worker(name, port, host, auth);
 };
 
 exports.Worker = Worker;
