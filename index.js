@@ -75,7 +75,8 @@ Queue.prototype.push = function (payload, callback) {
       id: id,
       payload: payload,
       error_count: 0,
-      errors: []
+      errors: [],
+      modified: Date.now()
     }), function (error, length) {
       if (error) {
         return handleError(error, callback);
@@ -183,6 +184,7 @@ var Job = function (parent, data, queue) {
   this.id          = data.id;
   this.error_count = data.error_count;
   this.errors      = data.errors;
+  this.modified    = data.modified;
   this.queue       = queue;
   this.prefix      = parent.prefix;
 
@@ -214,7 +216,8 @@ Job.prototype.retry = function (callback) {
     id:          this.id,
     payload:     this.payload,
     error_count: this.error_count,
-    errors:      this.errors
+    errors:      this.errors,
+    modified:    Date.now()
   }), function (error) {
     if (error)    return handleError(error, callback);
     if (callback) callback(null, self.id);
