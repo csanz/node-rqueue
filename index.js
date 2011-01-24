@@ -1,8 +1,12 @@
+/**
+ * Requires.
+ */
 var redis  = require('./deps/node-redis'),
     events = require('events');
 
 /**
  * Handle an error appropiatly.
+ *
  * @param {Error} error The error object in question.
  * @param {Function} callback Optional callback to pass error to.
  */
@@ -15,6 +19,7 @@ var handleError = function (error, callback) {
 
 /**
  * Remove a prefix from a string.
+ *
  * @param {String} prefix The prefix.
  * @param {String} string The string.
  * @returns {string} The un-prefixed string.
@@ -25,6 +30,7 @@ var removePrefix = function (prefix, string) {
 
 /**
  * The Queue prototype used by the server to add jobs to a queue.
+ *
  * @constructor
  * @param {String} name The queue name.
  * @param {String} host The host name for the Redis client.
@@ -38,6 +44,7 @@ var Queue = function (name, host, port) {
 
 /**
  * Creates a new Queue object.
+ *
  * @param {String} name The queue name.
  * @param {String} host The host name for the Redis client.
  * @param {Number} port The port number for the Redis client.
@@ -51,6 +58,7 @@ exports.Queue = Queue;
 
 /**
  * Adds a new job to the queue.
+ *
  * @param The data payload to enqueue.
  */
 Queue.prototype.push = function (payload, callback) {
@@ -82,6 +90,7 @@ Queue.prototype.push = function (payload, callback) {
 /**
  * Worker prototype used by the workers to listen for jobs.
  * Inherits from EventEmitter.
+ *
  * @constructor
  */
 var Worker = function (name, host, port) {
@@ -100,6 +109,7 @@ var Worker = function (name, host, port) {
 
   /*
    * Callback for blpop responses.
+   *
    * @private
    * @param {Error} error Possible error from Redis
    * @param data The data from redis.
@@ -127,6 +137,7 @@ Worker.prototype.constructor = Worker;
 
 /**
  * Creates a new Worker object.
+ *
  * @param {String} host The host name for the Redis client.
  * @param {Number} port The port number for the Redis client.
  * @returns {Worker}
@@ -162,6 +173,7 @@ Worker.prototype.stop = function () {
 
 /**
  * Job prototype used by the workers.
+ *
  * @constructor
  * @param {Worker} parent Parent prototype
  * @param payload The data to set as the payload.
@@ -182,6 +194,7 @@ exports.Job = Job;
 
 /**
  * Add an error the the job.
+ *
  * @param {Error} error The error object to add.
  */
 Job.prototype.reportError = function (error) {
@@ -191,6 +204,7 @@ Job.prototype.reportError = function (error) {
 
 /**
  * Re-process the job by adding back to the queue.
+ *
  * @param {Function} callback The optional callback
  */
 Job.prototype.retry = function (callback) {
