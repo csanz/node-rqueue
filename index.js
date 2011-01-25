@@ -121,6 +121,17 @@ var Worker = function (options) {
   // TODO: Rename?
   this.continual = false;
 
+  // Client for use with child jobs.
+  this._child_client = redis.createClient(this.port, this.host);
+
+  if (this.auth) {
+    this._child_client.auth(this.auth);
+  }
+
+  this._child_client.on('error', function (error) {
+    self.emit('error', error);
+  });
+
   /**
    * Callback for blpop responses.
    *
@@ -182,23 +193,6 @@ Worker.prototype.start = function () {
   this.client.on('error', function (error) {
     self.emit('error', error);
   });
-
-  if (this.continual) {
-    if (!this._child_client) {
-      // Client for use with child jobs.
-      this._child_client = redis.createClient(this.port, this.host);
-
-      if (this.auth) {
-        this._child_client.auth(this.auth);
-      }
-
-      this._child_client.on('error', function (error) {
-        self.emit('error', error);
-      });
-    }
-  } else {
-    this._child_client = this.client;
-  }
 
   this.next();
 };
