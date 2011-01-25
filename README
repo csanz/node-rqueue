@@ -24,7 +24,11 @@ queue-server.js:
 var client = require('./node-redis-queue');
 
 // Create the Queue with a redis server listening on localhost:6379
-var user_queue = new client.Queue('user', 'localhost', 6379);
+var user_queue = new client.Queue({
+  name: 'user',
+  host: 'localhost',
+  port: 6379
+});
 
 // Add a job to the queue.
 user_queue.push('Any JSON.strinify-able data goes in this parameter', function (error, id) {
@@ -39,7 +43,11 @@ queue-worker.js:
 var client = require('./node-redis-queue');
 
 // Create a worker for each queue.
-var worker = client.createWorker('user', 'localhost', 6379);
+var worker = client.createWorker({
+  name: 'user',
+  host: 'localhost',
+  port: 6379
+});
 
 // Setup message event
 worker.on('message', function (job) {
