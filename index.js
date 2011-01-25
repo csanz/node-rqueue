@@ -33,20 +33,17 @@ var removePrefix = function (prefix, string) {
  * The Queue prototype used by the server to add jobs to a queue.
  *
  * @constructor
- * @param {String} name: The queue name.
- * @param {Number} port: The port number for the Redis client.
- * @param {String} host: The host name for the Redis client.
- * @param {String} auth: If the redis host requires an AUTH command.
+ * @param {Object} options: A hash that can contain name, host, port, auth, prefix
  */
-var Queue = function (name, port, host, auth) {
+var Queue = function (options) {
   var self = this;
 
-  this.name   = name;
-  this.client = redis.createClient(port, host);
-  this.prefix = 'queue:';
+  this.name   = options.name;
+  this.client = redis.createClient(options.port, options.host);
+  this.prefix = options.prefix || 'queue:';
 
-  if (auth) {
-    this.client.auth(auth);
+  if (options.auth) {
+    this.client.auth(options.auth);
   }
 
   this.client.on('error', function (error) {
@@ -60,14 +57,11 @@ util.inherits(Queue, events.EventEmitter);
 /**
  * Creates a new Queue object.
  *
- * @param {String} name: The queue name.
- * @param {Number} port: The port number for the Redis client.
- * @param {String} host: The host name for the Redis client.
- * @param {String} auth: If the redis host requires an AUTH command.
+ * @param {Object} options: A hash that can contain name, host, port, auth, prefix
  * @returns {Queue}
  */
-exports.createQueue = function (name, port, host, auth) {
-  return new Queue(name, port, host, auth);
+exports.createQueue = function (options) {
+  return new Queue(options);
 };
 
 exports.Queue = Queue;
@@ -110,22 +104,19 @@ Queue.prototype.push = function (payload, callback) {
  * Inherits from EventEmitter.
  *
  * @constructor
- * @param {String} name: The queue name.
- * @param {Number} port: The port number for the Redis client.
- * @param {String} host: The host name for the Redis client.
- * @param {String} auth: If the redis host requires an AUTH command.
+ * @param {Object} options: A hash that can contain name, host, port, auth, prefix
  */
-var Worker = function (name, port, host, auth) {
+var Worker = function (options) {
   var self = this;
 
   // Call parent
   events.EventEmitter.call(this);
 
-  this.host      = host;
-  this.port      = port;
-  this.auth      = auth;
-  this.prefix    = 'queue:';
-  this.name      = name;
+  this.host      = options.host;
+  this.port      = options.port;
+  this.auth      = options.auth;
+  this.prefix    = options.prefix || 'queue:';
+  this.name      = options.name;
   this.queues    = {};
   // TODO: Rename?
   this.continual = false;
@@ -160,14 +151,11 @@ util.inherits(Worker, events.EventEmitter);
 /**
  * Creates a new Worker object.
  *
- * @param {String} name: The queue name.
- * @param {Number} port: The port number for the Redis client.
- * @param {String} host: The host name for the Redis client.
- * @param {String} auth: If the redis host requires an AUTH command.
+ * @param {Object} options: A hash that can contain name, host, port, auth, prefix
  * @returns {Worker}
  */
-exports.createWorker = function (name, port, host, auth) {
-  return new Worker(name, port, host, auth);
+exports.createWorker = function (options) {
+  return new Worker(options);
 };
 
 exports.Worker = Worker;

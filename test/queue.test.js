@@ -1,4 +1,4 @@
-var q      = require('../').createQueue('queue.test'),
+var q      = require('../').createQueue({ name: 'queue.test' }),
     assert = require('assert');
 
 module.exports = {

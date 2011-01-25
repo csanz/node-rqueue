@@ -1,8 +1,8 @@
 var client = require('../'),
     assert = require('assert');
 
-var q = client.createQueue('worker.test'),
-    w = client.createWorker('worker.test'),
+var q = client.createQueue({ name: 'worker.test' }),
+    w = client.createWorker({ name: 'worker.test' }),
     job;
 
 w.continual = true;
