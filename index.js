@@ -19,17 +19,6 @@ var handleError = function (error, callback) {
 };
 
 /**
- * Remove a prefix from a string.
- *
- * @param {String} prefix: The prefix.
- * @param {String} string: The string.
- * @returns {String} The un-prefixed string.
- */
-var removePrefix = function (prefix, string) {
-  return string.slice(prefix.length);
-};
-
-/**
  * The Queue prototype used by the server to add jobs to a queue.
  *
  * @constructor
@@ -40,7 +29,7 @@ var Queue = function (options) {
 
   this.name   = options.name;
   this.client = redis.createClient(options.port, options.host);
-  this.prefix = options.prefix || 'queue:';
+  this.prefix = options.prefix || '';
 
   if (options.auth) {
     this.client.auth(options.auth);
@@ -76,13 +65,13 @@ Queue.prototype.push = function (payload, callback) {
   var self = this;
 
   // Get an ID from redis
-  this.client.incr('id:' + this.name, function (error, id) {
+  this.client.incr(this.prefix + 'id:' + this.name, function (error, id) {
     if (error) {
       return handleError(error, callback);
     }
 
     // Push the job.
-    self.client.rpush(self.prefix + self.name, JSON.stringify({
+    self.client.rpush(self.prefix + 'queue:' + self.name, JSON.stringify({
       id: id,
       payload: payload,
       error_count: 0,
@@ -115,7 +104,7 @@ var Worker = function (options) {
   this.host      = options.host;
   this.port      = options.port;
   this.auth      = options.auth;
-  this.prefix    = options.prefix || 'queue:';
+  this.prefix    = options.prefix || '';
   this.name      = options.name;
   this.queues    = {};
   // TODO: Rename?
@@ -151,7 +140,7 @@ var Worker = function (options) {
 
     if (!self.client.quitting && self.continual) {
       // Listen for more jobs.
-      self.client.blpop(self.prefix + self.name, 0, self._onPop);
+      self.client.blpop(self.prefix + 'queue:' + self.name, 0, self._onPop);
     }
   };
 };
@@ -175,7 +164,7 @@ exports.Worker = Worker;
  * Listen for the next job. Only has to be called by user if `continual` is false.
  */
 Worker.prototype.next = function () {
-  this.client.blpop(this.prefix + this.name, 0, this._onPop); 
+  this.client.blpop(this.prefix + 'queue:' + this.name, 0, this._onPop); 
 };
 
 /**
@@ -245,7 +234,7 @@ Job.prototype.reportError = function (error) {
 Job.prototype.retry = function (callback) {
   var self = this;
 
-  this.parent._child_client.rpush(this.prefix + this.queue, JSON.stringify({
+  this.parent._child_client.rpush(this.prefix + 'queue:' + this.queue, JSON.stringify({
     id:          this.id,
     payload:     this.payload,
     error_count: this.error_count,
