@@ -1,0 +1,8 @@
+{
+  "name": "node-redis-queue",
+  "description": "A simple message queue backed by Redis.",
+  "version": "0.1.0",
+  "author": "Tim Smart",
+  "engine": [ "node >=0.3.6" ],
+  "main": "./"
+}
