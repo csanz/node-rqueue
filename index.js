@@ -28,12 +28,8 @@ var Queue = function (options) {
   var self = this;
 
   this.name   = options.name;
-  this.client = redis.createClient(options.port, options.host);
+  this.client = redis.createClient(options.port, options.host, options.auth);
   this.prefix = options.prefix || '';
-
-  if (options.auth) {
-    this.client.auth(options.auth);
-  }
 
   this.client.on('error', function (error) {
     self.emit('error', error);
@@ -111,11 +107,7 @@ var Worker = function (options) {
   this.continual = false;
 
   // Client for use with child jobs.
-  this._child_client = redis.createClient(this.port, this.host);
-
-  if (this.auth) {
-    this._child_client.auth(this.auth);
-  }
+  this._child_client = redis.createClient(this.port, this.host, this.auth);
 
   this._child_client.on('error', function (error) {
     self.emit('error', error);
@@ -173,11 +165,7 @@ Worker.prototype.next = function () {
 Worker.prototype.start = function () {
   var self = this;
 
-  this.client = redis.createClient(this.port, this.host);
-
-  if (this.auth) {
-    this.client.auth(this.auth);
-  }
+  this.client = redis.createClient(this.port, this.host, this.auth);
 
   this.client.on('error', function (error) {
     self.emit('error', error);
