@@ -125,10 +125,12 @@ var Worker = function (options) {
       return self.emit('error', error);
     }
 
-    var data = JSON.parse(Buffer.isBuffer(data[1]) ? data[1].toString() : data),
-        job  = new Job(self, data);
+    try {
+      data = JSON.parse(Buffer.isBuffer(data[1]) ? data[1].toString() : data[1]);
+      var job  = new Job(self, data);
 
-    self.emit('message', job);
+      self.emit('message', job);
+    } catch (json_error) {}
 
     if (!self.client.quitting && self.continual) {
       // Listen for more jobs.
