@@ -49,6 +49,8 @@ module.exports = {
   },
   "test Job#retry": function (done) {
     w.on('message', function (job) {
+      w.next();
+
       assert.ok(job);
 
       assert.equal(job.id, 2);
@@ -60,6 +62,7 @@ module.exports = {
       done();
     });
 
+    w.continual = false;
     w.start();
 
     job.retry(function (error, id) {
@@ -70,9 +73,7 @@ module.exports = {
   after: function () {
     q.client.del('queue:worker.test');
     q.client.del('id:worker.test');
-    q.client.quit();
 
-    w._child_client.quit();
-    w.stop();
+    setTimeout(process.exit, 100);
   }
-}
+};

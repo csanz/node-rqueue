@@ -97,21 +97,26 @@ var Worker = function (options) {
   // Call parent
   events.EventEmitter.call(this);
 
-  this.host      = options.host;
-  this.port      = options.port;
-  this.auth      = options.auth;
-  this.prefix    = options.prefix || '';
-  this.name      = options.name;
-  this.queues    = {};
+  this.host        = options.host;
+  this.port        = options.port;
+  this.auth        = options.auth;
+  this.prefix      = options.prefix || '';
+  this.name        = options.name;
+  this.queues      = {};
+  this._current_id = null;
   // TODO: Rename?
-  this.continual = false;
+  this.continual   = false;
 
   // Client for use with child jobs.
   this._child_client = redis.createClient(this.port, this.host, this.auth);
 
-  this._child_client.on('error', function (error) {
-    self.emit('error', error);
-  });
+  this._onError = function (error) {
+    if (error) {
+      self.emit('error', error);
+    }
+  }
+
+  this._child_client.on('error', this._onError);
 
   /**
    * Callback for blpop responses.
@@ -129,8 +134,19 @@ var Worker = function (options) {
       data = JSON.parse(Buffer.isBuffer(data[1]) ? data[1].toString() : data[1]);
       var job  = new Job(self, data);
 
+      if (!self.continual) {
+        self._current_id = job.id;
+        try {
+          self.client.hset(self.prefix + 'pending:' + self.name, job.id, JSON.stringify(job), self._onError);
+        } catch (error) {
+          self._onError(error);
+        }
+      }
+
       self.emit('message', job);
-    } catch (json_error) {}
+    } catch (json_error) {
+      self._onError(json_error);
+    }
 
     if (!self.client.quitting && self.continual) {
       // Listen for more jobs.
@@ -158,6 +174,10 @@ exports.Worker = Worker;
  * Listen for the next job. Only has to be called by user if `continual` is false.
  */
 Worker.prototype.next = function () {
+  if (this._current_id) {
+    this.client.hdel(this.prefix + 'pending:' + this.name, this._current_id, this._onError);
+  }
+
   this.client.blpop(this.prefix + 'queue:' + this.name, 0, this._onPop); 
 };
 
@@ -234,4 +254,19 @@ Job.prototype.retry = function (callback) {
     if (error)    return handleError(error, callback);
     if (callback) callback(null, self.id);
   });
+};
+
+/**
+ * For JSON.stringify
+ *
+ * @return {Object}
+ */
+Job.prototype.toJSON = function () {
+  return {
+    id:          this.id,
+    payload:     this.payload,
+    error_count: this.error_count,
+    errors:      this.errors,
+    modified:    this.modified
+  };
 };
