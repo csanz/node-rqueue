@@ -1,8 +1,9 @@
 {
-  "name": "redis-queue",
-  "description": "A simple message queue backed by Redis.",
+  "name": "rqueue",
+  "description": "A node.js implementation of RQueue, includes Worker and Queue ",
   "version": "0.1.2",
-  "author": "Tim Smart",
+  "author": "Tim Smart <tim@votizen.com>",
+	"contributors": ["Micheil Smith <micheil@votizen.com>"],
   "engine": [ "node >=0.3.6" ],
   "main": "./",
   "dependencies": {
