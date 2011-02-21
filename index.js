@@ -61,9 +61,11 @@ exports.Queue = Queue;
 Queue.prototype.push = function (payload, callback) {
   var self = this;
 
+  var id = uuid();
+
   // Push the job.
   self.client.rpush(self.prefix + 'queue:' + self.name, JSON.stringify({
-    id: uuid(),
+    id: id,
     payload: payload,
     error_count: 0,
     errors: [],
@@ -75,6 +77,8 @@ Queue.prototype.push = function (payload, callback) {
 
     if (callback) callback(null, id);
   });
+
+  return id;
 };
 
 
