@@ -3,6 +3,7 @@
  */
 var redis  = require('./deps/node-redis'),
     events = require('events'),
+    uuid   = require('node-uuid'),
     util   = require('util');
 
 /**
@@ -60,26 +61,19 @@ exports.Queue = Queue;
 Queue.prototype.push = function (payload, callback) {
   var self = this;
 
-  // Get an ID from redis
-  this.client.incr(this.prefix + 'id:' + this.name, function (error, id) {
+  // Push the job.
+  self.client.rpush(self.prefix + 'queue:' + self.name, JSON.stringify({
+    id: uuid(),
+    payload: payload,
+    error_count: 0,
+    errors: [],
+    modified: Date.now()
+  }), function (error, length) {
     if (error) {
       return handleError(error, callback);
     }
 
-    // Push the job.
-    self.client.rpush(self.prefix + 'queue:' + self.name, JSON.stringify({
-      id: id,
-      payload: payload,
-      error_count: 0,
-      errors: [],
-      modified: Date.now()
-    }), function (error, length) {
-      if (error) {
-        return handleError(error, callback);
-      }
-
-      if (callback) callback(null, id);
-    });
+    if (callback) callback(null, id);
   });
 };
 
