@@ -1,11 +1,11 @@
 {
   "name": "redis-queue",
   "description": "A simple message queue backed by Redis.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": "Tim Smart",
   "engine": [ "node >=0.3.6" ],
   "main": "./",
   "dependencies": {
-    "node-uuid": ">1.1.0"
+    "node-uuid": ">=1.1.0"
   }
 }
