@@ -1,12 +1,13 @@
 {
   "name": "rqueue",
   "description": "A node.js implementation of RQueue, includes Worker and Queue ",
-  "version": "0.1.2",
+  "version": "0.1.5",
   "author": "Tim Smart <tim@votizen.com>",
 	"contributors": ["Micheil Smith <micheil@votizen.com>"],
   "engine": [ "node >=0.3.6" ],
   "main": "./",
   "dependencies": {
-    "node-uuid": ">=1.1.0"
+    "node-uuid": ">=1.1.0",
+    "filter": ">=0.1.0"
   }
 }

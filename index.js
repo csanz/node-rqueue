@@ -2,7 +2,7 @@
  * Requires.
  */
 var redis  = require('./deps/node-redis'),
-    events = require('events'),
+    Filter = require('filter'),
     uuid   = require('node-uuid'),
     util   = require('util');
 
@@ -37,8 +37,8 @@ var Queue = function (options) {
   });
 };
 
-// Inherits from EventEmitter.
-util.inherits(Queue, events.EventEmitter);
+// Inherits from Filter.
+util.inherits(Queue, Filter);
 
 /**
  * Creates a new Queue object.
@@ -56,9 +56,9 @@ exports.Queue = Queue;
  * Adds a new job to the queue.
  *
  * @param {Object} payload: The data payload to enqueue.
- * @param {Function} callback: The data payload to enqueue.
+ * @param {Function} callback
  */
-Queue.prototype.push = function (payload, callback) {
+Queue.prototype.write = function (payload, callback) {
   var self = this;
 
   var id = uuid();
@@ -84,16 +84,17 @@ Queue.prototype.push = function (payload, callback) {
 
 /**
  * Worker prototype used by the workers to listen for jobs.
- * Inherits from EventEmitter.
+ * Inherits from Filter.
  *
  * @constructor
+ * @extends {Filter}
  * @param {Object} options: A hash that can contain name, host, port, auth, prefix
  */
 var Worker = function (options) {
   var self = this;
 
   // Call parent
-  events.EventEmitter.call(this);
+  Filter.call(this);
 
   this.host        = options.host;
   this.port        = options.port;
@@ -141,7 +142,7 @@ var Worker = function (options) {
         }
       }
 
-      self.emit('message', job);
+      self.emit('data', job);
     } catch (json_error) {
       self._onError(json_error);
     }
@@ -153,8 +154,8 @@ var Worker = function (options) {
   };
 };
 
-// Inherits from EventEmitter.
-util.inherits(Worker, events.EventEmitter);
+// Inherits from Filter.
+util.inherits(Worker, Filter);
 
 /**
  * Creates a new Worker object.
@@ -210,8 +211,8 @@ Worker.prototype.stop = function () {
  * @param {Object} payload: The data to set as the payload.
  */
 var Job = function (worker, data) {
-  this.payload     = data.payload;
   this.id          = data.id;
+  this.payload     = data.payload;
   this.error_count = data.error_count;
   this.errors      = data.errors;
   this.modified    = data.modified;
