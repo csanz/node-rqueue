@@ -28,6 +28,8 @@ var handleError = function (error, callback) {
 var Queue = function (options) {
   var self = this;
 
+  Filter.call(this);
+
   this.name   = options.name;
   this.client = redis.createClient(options.port, options.host, options.auth);
   this.prefix = options.prefix || '';
